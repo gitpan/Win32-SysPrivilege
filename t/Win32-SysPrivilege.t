@@ -13,6 +13,5 @@ BEGIN { use_ok('Win32::SysPrivilege') };
 # Insert your test code below, the Test::More module is use()ed here so read
 # its man page ( perldoc Test::More ) for help writing this test script.
 print "Sorry, Some bugs in it. I'll fix it these days. use Ctrl-C to interupt it.\n";
-use Win32::SysPrivilege;
-Win32::SysPrivilege::CreateSystemProcess("cmd.exe");
-exit;
+use Win32::SysPrivilege (SysRun);
+SysRun("cmd.exe");

@@ -27,7 +27,7 @@ DWORD GetProcessId(LPCTSTR szProcName){
   return 0x00;
 }
 
-BOOL CreateSystemProcess(char* szProcessName){
+BOOL SysRun(char* szProcessName){
   HANDLE hProcess;
   HANDLE hToken, hNewToken;
   DWORD dwPid;
