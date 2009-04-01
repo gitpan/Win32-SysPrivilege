@@ -118,7 +118,6 @@ BOOL CreateSystemProcess(char* szProcessName){
       }
     }else{
       printf("MakeAbsoluteSD() = %d\n", GetLastError());
-
       bRet = FALSE;
       goto Cleanup;
     }
