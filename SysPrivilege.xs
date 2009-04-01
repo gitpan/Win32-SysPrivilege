@@ -6,4 +6,3 @@
 MODULE = Win32::SysPrivilege		PACKAGE = Win32::SysPrivilege		
 bool
 SysRun (char *szProcessName)
-

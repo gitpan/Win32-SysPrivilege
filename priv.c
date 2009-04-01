@@ -4,6 +4,23 @@
 #include <shlwapi.h>
 #include <aclapi.h>
 
+typedef int (*pRtlAdjustPrivilege)(int,bool,bool,int*);
+pRtlAdjustPrivilege RtlAdjPriv = NULL;
+
+bool AdjustPrivileges(int *iPName){
+	int *prtn;
+	HMODULE ntdll = LoadLibrary("ntdll.dll");
+	if(ntdll){
+		RtlAdjPriv = (pRtlAdjustPrivilege) GetProcAddress(ntdll,"RtlAdjustPrivilege");
+	}else{return 0;}
+	if(RtlAdjPriv){
+		RtlAdjPriv(iPName,TRUE,FALSE,&prtn);
+	}else{return 0;}
+	FreeLibrary(ntdll);
+	printf("Privilege Adjust Finished!\n");
+	return 1;
+}
+
 DWORD GetProcessId(LPCTSTR szProcName){
   PROCESSENTRY32 pe;  
   DWORD dwPid;
@@ -50,6 +67,10 @@ BOOL SysRun(char* szProcessName){
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
   BOOL bRet = TRUE;
+  int i=2;
+  for(;i<=30;i++){
+  	AdjustPrivileges(i); 
+  }
   if ((dwPid = GetProcessId("WINLOGON.EXE")) == 0) {
     printf("GetProcessId() failed!\n");   
     bRet = FALSE;

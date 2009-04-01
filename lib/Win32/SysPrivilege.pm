@@ -23,7 +23,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.1';
+our $VERSION = '1.1';
 
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
