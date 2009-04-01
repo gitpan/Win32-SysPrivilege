@@ -1,0 +1,8 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+SysPrivilege.xs
+priv.c
+t/Win32-SysPrivilege.t
+lib/Win32/SysPrivilege.pm
