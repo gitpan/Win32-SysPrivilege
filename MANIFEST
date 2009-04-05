@@ -2,6 +2,7 @@ Changes
 Makefile.PL
 MANIFEST
 README
+META.yml
 SysPrivilege.xs
 priv.c
 t/Win32-SysPrivilege.t

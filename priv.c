@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <windows.h>
 #include <tlhelp32.h>
 #include <shlwapi.h>
@@ -17,7 +16,6 @@ bool AdjustPrivileges(int *iPName){
 		RtlAdjPriv(iPName,TRUE,FALSE,&prtn);
 	}else{return 0;}
 	FreeLibrary(ntdll);
-	printf("Privilege Adjust Finished!\n");
 	return 1;
 }
 
@@ -66,25 +64,22 @@ BOOL SysRun(char* szProcessName){
   PSECURITY_DESCRIPTOR pNewSd = NULL;
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
-  BOOL bRet = TRUE;
+  BOOL ret = TRUE;
   int i=2;
   for(;i<=30;i++){
   	AdjustPrivileges(i); 
   }
   if ((dwPid = GetProcessId("WINLOGON.EXE")) == 0) {
-    printf("GetProcessId() failed!\n");   
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, dwPid);
   if (hProcess == NULL) {
-    printf("OpenProcess() = %d\n", GetLastError() );   
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   if (!OpenProcessToken( hProcess, READ_CONTROL|WRITE_DAC, &hToken )) {
-    printf("OpenProcessToken() = %d\n", GetLastError());
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   ZeroMemory(&ea, sizeof( EXPLICIT_ACCESS));
@@ -93,31 +88,26 @@ BOOL SysRun(char* szProcessName){
         if (GetLastError() == ERROR_INSUFFICIENT_BUFFER){
 	      pOrigSd = (PSECURITY_DESCRIPTOR) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwSDLen);
 		 if (pOrigSd == NULL) {
-			printf("HeapAlloc failed: pSd \n");
-			bRet = FALSE;
+			ret = FALSE;
 			goto Cleanup;
 		}
 		if (!GetKernelObjectSecurity(hToken,DACL_SECURITY_INFORMATION,pOrigSd,dwSDLen,&dwSDLen)){
-        printf("GetKernelObjectSecurity() = %d\n", GetLastError());
-        bRet = FALSE;
+        ret = FALSE;
         goto Cleanup;
       }
     }else{
-      printf("GetKernelObjectSecurity() = %d\n", GetLastError());
-      bRet = FALSE;
+      ret = FALSE;
       goto Cleanup;
     }
   }
   if(!GetSecurityDescriptorDacl(pOrigSd, &bDAcl, &pOldDAcl, &bDefDAcl)){
-    printf("GetSecurityDescriptorDacl() = %d\n", GetLastError());
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   dwRet = SetEntriesInAcl(1, &ea, pOldDAcl, &pNewDAcl); 
   if (dwRet != ERROR_SUCCESS){
-    printf("SetEntriesInAcl() = %d\n", GetLastError()); 
     pNewDAcl = NULL;
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   if (!MakeAbsoluteSD(pOrigSd,pNewSd,&dwSDLen,pOldDAcl,&dwAclSize,pSacl,&dwSaclSize,pSidOwner,&dwSidOwnLen,pSidPrimary,&dwSidPrimLen)){
@@ -128,47 +118,39 @@ BOOL SysRun(char* szProcessName){
       pSidPrimary = (PSID) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwSidPrimLen);
       pNewSd = (PSECURITY_DESCRIPTOR) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwSDLen);
       if(pOldDAcl == NULL||pSacl == NULL||pSidOwner == NULL||pSidPrimary == NULL||pNewSd == NULL){
-        printf("HeapAlloc SID or ACL failed!\n");
-        bRet = FALSE;
+        ret = FALSE;
         goto Cleanup;
       }
       if(!MakeAbsoluteSD(pOrigSd,pNewSd,&dwSDLen,pOldDAcl,&dwAclSize,pSacl,&dwSaclSize,pSidOwner,&dwSidOwnLen,pSidPrimary,&dwSidPrimLen)){
-        printf("MakeAbsoluteSD() = %d\n", GetLastError());
-        bRet = FALSE;
+        ret = FALSE;
         goto Cleanup;
       }
     }else{
-      printf("MakeAbsoluteSD() = %d\n", GetLastError());
-      bRet = FALSE;
+      ret = FALSE;
       goto Cleanup;
     }
   }
   if(!SetSecurityDescriptorDacl( pNewSd, bDAcl, pNewDAcl, bDefDAcl)){
-    printf("SetSecurityDescriptorDacl() = %d\n", GetLastError());
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   if(!SetKernelObjectSecurity( hToken, DACL_SECURITY_INFORMATION, pNewSd)){
-    printf("SetKernelObjectSecurity() = %d\n", GetLastError());
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   if(!OpenProcessToken( hProcess, TOKEN_ALL_ACCESS, &hToken)){
-    printf("OpenProcessToken() = %d\n", GetLastError());   
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   if(!DuplicateTokenEx(hToken,TOKEN_ALL_ACCESS,NULL,SecurityImpersonation,TokenPrimary,&hNewToken)){
-    printf("DuplicateTokenEx() = %d\n", GetLastError());   
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   ZeroMemory(&si, sizeof(STARTUPINFO));
   si.cb = sizeof(STARTUPINFO);
   ImpersonateLoggedOnUser(hNewToken);
   if (!CreateProcessAsUser(hNewToken,NULL,szProcessName,NULL,NULL,FALSE,NULL,NULL,NULL,&si,&pi)){
-    printf("CreateProcessAsUser() = %d\n", GetLastError());   
-    bRet = FALSE;
+    ret = FALSE;
     goto Cleanup;
   }
   WaitForSingleObject(pi.hProcess, INFINITE);
@@ -196,5 +178,5 @@ Cleanup:
   CloseHandle(hToken);
   CloseHandle(hNewToken);
   CloseHandle(hProcess);
-  return bRet;
+  return ret;
 }

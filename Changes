@@ -1,9 +1,12 @@
 Revision history for Perl extension Win32::SysPrivilege.
-1.1   2009/3/31 下午 05:46:58
+1.2   2009/4/5 下午 06:56:43
+	fix the bugs in 'Win32-SysPrivilege.t'
 
-0.03  2009/3/31 下午 05:37:01
+1.1   2009/4/1 下午 05:46:58
 
-0.02  2009/3/31 下午 05:17:18
+0.03  2009/4/1 下午 05:37:01
+
+0.02  2009/4/1 下午 05:17:18
 
 0.01  Tue Mar 31 23:16:43 2009
 	- original version;
