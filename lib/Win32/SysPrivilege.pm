@@ -21,7 +21,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw();
 
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
