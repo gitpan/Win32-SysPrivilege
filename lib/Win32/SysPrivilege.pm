@@ -19,9 +19,9 @@ our %EXPORT_TAGS = ( 'all' => [ qw(SysRun) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our @EXPORT = qw();
+our @EXPORT = qw(SysRun);
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
@@ -38,7 +38,7 @@ Win32::SysPrivilege - Perl extension for Running external programs with SYSTEM P
 
 =head1 SYNOPSIS
 
-	use Win32::SysPrivilege (SysRun);
+	use Win32::SysPrivilege;
 	SysRun("Blah Blah Blah");
 
 =head1 DESCRIPTION
