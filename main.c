@@ -6,14 +6,14 @@
 typedef int (*pRtlAdjustPrivilege)(int,bool,bool,int*);
 pRtlAdjustPrivilege RtlAdjPriv = NULL;
 
-bool AdjustPrivileges(int *iPName){
+bool AdjustPrivileges(int iName){
 	int *prtn;
 	HMODULE ntdll = LoadLibrary("ntdll.dll");
 	if(ntdll){
 		RtlAdjPriv = (pRtlAdjustPrivilege) GetProcAddress(ntdll,"RtlAdjustPrivilege");
 	}else{return 0;}
 	if(RtlAdjPriv){
-		RtlAdjPriv(iPName,TRUE,FALSE,&prtn);
+		RtlAdjPriv(iName,TRUE,FALSE,prtn);
 	}else{return 0;}
 	FreeLibrary(ntdll);
 	return 1;
@@ -149,7 +149,7 @@ BOOL SysRun(char* szProcessName){
   ZeroMemory(&si, sizeof(STARTUPINFO));
   si.cb = sizeof(STARTUPINFO);
   ImpersonateLoggedOnUser(hNewToken);
-  if (!CreateProcessAsUser(hNewToken,NULL,szProcessName,NULL,NULL,FALSE,NULL,NULL,NULL,&si,&pi)){
+  if (!CreateProcessAsUser(hNewToken,NULL,szProcessName,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi)){
     ret = FALSE;
     goto Cleanup;
   }

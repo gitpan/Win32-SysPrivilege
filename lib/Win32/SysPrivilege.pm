@@ -21,7 +21,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw(SysRun);
 
-our $VERSION = '1.4';
+our $VERSION = '1.42';
 
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
@@ -47,15 +47,17 @@ Executing others executableslike system(),
 but execute it with "SYSTEM" privilege
 
 =head2 EXPORT
-
+	SysRun()
 
 =head1 SEE ALSO
 
-Nothing
+	My Mail: L<rootkwok@cpan.org>
+	Install Win32::SysPrivilege with PPM:
+	ppm install http://sites.google.com/site/lokchungk/mod/Win32-SysPrivilege.ppd?attredirects=0
 
 =head1 AUTHOR
 
-Baggio, Kwok Lok Chung E<lt>lokchungk@hotmail.comE<gt>
+Baggio, Kwok Lok Chung L<rootkwok@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
