@@ -4,5 +4,5 @@
 #include "main.c"
 
 MODULE = Win32::SysPrivilege		PACKAGE = Win32::SysPrivilege		
-bool
-SysRun (char *szProcessName)
+int
+SysRun(char* szProcessName)

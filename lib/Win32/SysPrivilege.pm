@@ -1,9 +1,5 @@
 package Win32::SysPrivilege;
 
-use 5.010000;
-use strict;
-use warnings;
-
 require Exporter;
 
 our @ISA = qw(Exporter);
@@ -21,7 +17,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw(SysRun);
 
-our $VERSION = '1.42';
+our $VERSION = '1.44';
 
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
