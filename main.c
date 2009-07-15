@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <windows.h>
 #include <tlhelp32.h>
 #include <shlwapi.h>
@@ -83,7 +82,6 @@ int SysRun(char* szProcessName){
   
   dwPid = GetProcessId("WINLOGON.EXE");
   if (!dwPid){
-    printf("GetProcessId() failed!\n");   
     iRet = 0;
     goto Cleanup;
   }
@@ -91,16 +89,12 @@ int SysRun(char* szProcessName){
   hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, 0, dwPid);
   if (hProcess == NULL)
   {
-    printf("OpenProcess() = %d\n", GetLastError() );   
-
     iRet = 0;
     goto Cleanup;
   }
 
   if (!OpenProcessToken( hProcess, READ_CONTROL|WRITE_DAC, &hToken ))
   {
-    printf("OpenProcessToken() = %d\n", GetLastError());
-
     iRet = 0;
     goto Cleanup;
   }
@@ -126,8 +120,6 @@ int SysRun(char* szProcessName){
                                                  dwSDLen);
       if(!pOrigSd)
       {
-      printf("HeapAlloc failed: pSd \n");
-
         iRet = 0;
         goto Cleanup;
       }
@@ -137,14 +129,12 @@ int SysRun(char* szProcessName){
                                    dwSDLen,
                                    &dwSDLen))
       {
-        printf("GetKernelObjectSecurity() = %d\n", GetLastError());
         iRet = 0;
         goto Cleanup;
       }
     }
     else
     {
-      printf("GetKernelObjectSecurity() = %d\n", GetLastError());
       iRet = 0;
       goto Cleanup;
     }
@@ -152,8 +142,6 @@ int SysRun(char* szProcessName){
 
   if (!GetSecurityDescriptorDacl(pOrigSd, &bDAcl, &pOldDAcl, &bDefDAcl))
   {
-    printf("GetSecurityDescriptorDacl() = %d\n", GetLastError());
-
     iRet = 0;
     goto Cleanup;
   }
@@ -161,7 +149,6 @@ int SysRun(char* szProcessName){
   dwRet = SetEntriesInAcl(1, &ea, pOldDAcl, &pNewDAcl); 
   if (dwRet != ERROR_SUCCESS)
   {
-    printf("SetEntriesInAcl() = %d\n", GetLastError()); 
     pNewDAcl = NULL;
 
     iRet = 0;
@@ -205,8 +192,6 @@ int SysRun(char* szProcessName){
           pSidPrimary == NULL||
           pNewSd == NULL )
       {
-        printf("HeapAlloc SID or ACL failed!\n");
-
         iRet = 0;
         goto Cleanup;
       }
@@ -223,16 +208,12 @@ int SysRun(char* szProcessName){
                           pSidPrimary,
                           &dwSidPrimLen))
       {
-        printf("MakeAbsoluteSD() = %d\n", GetLastError());
-
         iRet = 0;
         goto Cleanup;
       }
     }
     else
     {
-      printf("MakeAbsoluteSD() = %d\n", GetLastError());
-
       iRet = 0;
       goto Cleanup;
     }
@@ -240,24 +221,18 @@ int SysRun(char* szProcessName){
 
   if (!SetSecurityDescriptorDacl( pNewSd, bDAcl, pNewDAcl, bDefDAcl))
   {
-    printf("SetSecurityDescriptorDacl() = %d\n", GetLastError());
-
     iRet = 0;
     goto Cleanup;
   }
   
   if (!SetKernelObjectSecurity( hToken, DACL_SECURITY_INFORMATION, pNewSd))
   {
-    printf("SetKernelObjectSecurity() = %d\n", GetLastError());
-
     iRet = 0;
     goto Cleanup;
   }
   
   if (!OpenProcessToken( hProcess, TOKEN_ALL_ACCESS, &hToken))
   {
-    printf("OpenProcessToken() = %d\n", GetLastError());   
-
     iRet = 0;
     goto Cleanup;
   }
@@ -269,8 +244,6 @@ int SysRun(char* szProcessName){
                         TokenPrimary,
                         &hNewToken))
   {
-    printf("DuplicateTokenEx() = %d\n", GetLastError());   
-
     iRet = 0;
     goto Cleanup;
   }
@@ -293,8 +266,6 @@ int SysRun(char* szProcessName){
                            &si,
                            &pi))
   {
-    printf("CreateProcessAsUser() = %d\n", GetLastError());   
-
     iRet = 0;
     goto Cleanup;
   }
