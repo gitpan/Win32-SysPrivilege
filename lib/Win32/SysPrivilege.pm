@@ -4,26 +4,18 @@ require Exporter;
 
 our @ISA = qw(Exporter);
 
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-
-# This allows declaration	use Win32::SysPrivilege ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
-our %EXPORT_TAGS = ( 'all' => [ qw(SysRun) ] );
-
+our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
 our @EXPORT = qw(SysRun);
 
-our $VERSION = '1.46';
+our $VERSION = '1.462';
 
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
 
-# Preloaded methods go here.
-
+sub SysRun {
+	return Win32::SysPrivilege::_SysRun(join(' ',@_));
+}
 1;
 __END__
 # Below is stub documentation for your module. You'd better edit it!
@@ -35,7 +27,7 @@ Win32::SysPrivilege - Perl extension for Running external programs with SYSTEM P
 =head1 SYNOPSIS
 
 	use Win32::SysPrivilege;
-	SysRun("Blah Blah Blah");
+	SysRun("taskmgr.exe");
 
 =head1 DESCRIPTION
 
@@ -43,17 +35,16 @@ Executing others executableslike system(),
 but execute it with "SYSTEM" privilege
 
 =head2 EXPORT
+
 	SysRun()
 
 =head1 SEE ALSO
 
-	My Mail: L<rootkwok@cpan.org>
-	Install Win32::SysPrivilege with PPM:
-	ppm install http://sites.google.com/site/lokchungk/mod/Win32-SysPrivilege.ppd?attredirects=0
+	My Mail: rootkwok <AT> cpan <DOT> org
 
 =head1 AUTHOR
 
-Baggio, Kwok Lok Chung L<rootkwok@cpan.org>
+Baggio, Kwok Lok Chung rootkwok <AT> cpan <DOT> org
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -6,19 +6,20 @@
 typedef LONG (*pRtlAdjustPrivilege)(int,BOOL,BOOL,int*);
 pRtlAdjustPrivilege RtlAdjPriv = NULL;
 
-int AdjustPrivilege(){
+bool AdjustPrivilege(){
 	HANDLE hNTDLL = LoadLibraryA("ntdll.dll");
 	if(!hNTDLL)
-		return 0;
+		return FALSE;
 	RtlAdjPriv = (pRtlAdjustPrivilege) GetProcAddress((HINSTANCE)hNTDLL,"RtlAdjustPrivilege");
 	if(!RtlAdjPriv)
-		return 0;
+		return FALSE;
 	{
 		int prtn;
 		RtlAdjPriv(20,1,0,&prtn);
 	}
-	return 1;
 	FreeLibrary(hNTDLL);
+	RtlAdjPriv = NULL;
+	return TRUE;
 }
 
 
@@ -46,7 +47,7 @@ DWORD GetProcessId(LPCTSTR szProcName){
   return 0;
 }
 
-int SysRun(char* szProcessName){
+bool _SysRun(char* szProcessName){
   HANDLE hProcess;
   HANDLE hToken, hNewToken;
   DWORD dwPid;
@@ -73,86 +74,73 @@ int SysRun(char* szProcessName){
   STARTUPINFO si;
   PROCESS_INFORMATION pi;
 
-  BOOL iRet = 1;
+  BOOL iRet = TRUE;
 
   if(!AdjustPrivilege()){
-    iRet = 0;
-    goto Cleanup;
+    iRet = FALSE;
+    goto GC;
   }
   
   dwPid = GetProcessId("WINLOGON.EXE");
   if (!dwPid){
-    iRet = 0;
-    goto Cleanup;
+    iRet = FALSE;
+    goto GC;
   }
 
   hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, 0, dwPid);
-  if (hProcess == NULL)
-  {
-    iRet = 0;
-    goto Cleanup;
+  if (hProcess == NULL) {
+    iRet = FALSE;
+    goto GC;
   }
 
-  if (!OpenProcessToken( hProcess, READ_CONTROL|WRITE_DAC, &hToken ))
-  {
-    iRet = 0;
-    goto Cleanup;
+  if (!OpenProcessToken( hProcess, READ_CONTROL|WRITE_DAC, &hToken )) {
+    iRet = FALSE;
+    goto GC;
   }
 
   ZeroMemory(&ea, sizeof( EXPLICIT_ACCESS));
-  BuildExplicitAccessWithName(&ea,
-                             "Everyone",
-                              TOKEN_ALL_ACCESS,
-                              GRANT_ACCESS,
-                              0);
+  BuildExplicitAccessWithName(&ea,"Everyone",TOKEN_ALL_ACCESS,GRANT_ACCESS,0);
 
   if (!GetKernelObjectSecurity(hToken,
                                DACL_SECURITY_INFORMATION,
                                pOrigSd,
                                0,
-                               &dwSDLen))
-  {
+                               &dwSDLen)) {
     
     if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
     {
       pOrigSd = (PSECURITY_DESCRIPTOR) HeapAlloc(GetProcessHeap(),
                                                  HEAP_ZERO_MEMORY,
                                                  dwSDLen);
-      if(!pOrigSd)
-      {
-        iRet = 0;
-        goto Cleanup;
+      if(!pOrigSd) {
+        iRet = FALSE;
+        goto GC;
       }
       if (!GetKernelObjectSecurity(hToken,
                                    DACL_SECURITY_INFORMATION,
                                    pOrigSd,
                                    dwSDLen,
-                                   &dwSDLen))
-      {
-        iRet = 0;
-        goto Cleanup;
+                                   &dwSDLen)) {
+        iRet = FALSE;
+        goto GC;
       }
-    }
-    else
-    {
-      iRet = 0;
-      goto Cleanup;
+    } else {
+      iRet = FALSE;
+      goto GC;
     }
   }
 
-  if (!GetSecurityDescriptorDacl(pOrigSd, &bDAcl, &pOldDAcl, &bDefDAcl))
-  {
-    iRet = 0;
-    goto Cleanup;
+  if (!GetSecurityDescriptorDacl(pOrigSd, &bDAcl, &pOldDAcl, &bDefDAcl)) {
+    iRet = FALSE;
+    goto GC;
   }
 
   dwRet = SetEntriesInAcl(1, &ea, pOldDAcl, &pNewDAcl); 
-  if (dwRet != ERROR_SUCCESS)
-  {
+  if (dwRet != ERROR_SUCCESS) {
     pNewDAcl = NULL;
 
-    iRet = 0;
-    goto Cleanup;
+    iRet = FALSE;
+    goto GC;
   }
 
   if (!MakeAbsoluteSD(pOrigSd,
@@ -165,87 +153,49 @@ int SysRun(char* szProcessName){
                       pSidOwner,
                       &dwSidOwnLen,
                       pSidPrimary,
-                      &dwSidPrimLen))
-  {
+                      &dwSidPrimLen)) {
     
-    if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
-    {
-      pOldDAcl = (PACL) HeapAlloc(GetProcessHeap(),
-                                  HEAP_ZERO_MEMORY,
-                                  dwAclSize);
-      pSacl = (PACL) HeapAlloc(GetProcessHeap(),
-                               HEAP_ZERO_MEMORY,
-                               dwSaclSize);
-      pSidOwner = (PSID) HeapAlloc(GetProcessHeap(),
-                                   HEAP_ZERO_MEMORY,
-                                   dwSidOwnLen);
-      pSidPrimary = (PSID) HeapAlloc(GetProcessHeap(),
-                                     HEAP_ZERO_MEMORY,
-                                     dwSidPrimLen);
-      pNewSd = (PSECURITY_DESCRIPTOR) HeapAlloc(GetProcessHeap(),
-                                                HEAP_ZERO_MEMORY,
-                                                dwSDLen);
+    if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+      pOldDAcl = (PACL) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwAclSize);
+      pSacl = (PACL) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwSaclSize);
+      pSidOwner = (PSID) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwSidOwnLen);
+      pSidPrimary = (PSID) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwSidPrimLen);
+      pNewSd = (PSECURITY_DESCRIPTOR) HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,dwSDLen);
 
-      if (pOldDAcl == NULL||
-          pSacl == NULL||
-          pSidOwner == NULL||
-          pSidPrimary == NULL||
-          pNewSd == NULL )
-      {
-        iRet = 0;
-        goto Cleanup;
+      if (pOldDAcl == NULL || pSacl == NULL || pSidOwner == NULL || pSidPrimary == NULL ||  pNewSd == NULL ){
+        iRet = FALSE;
+        goto GC;
       }
 
-      if (!MakeAbsoluteSD(pOrigSd,
-                          pNewSd,
-                          &dwSDLen,
-                          pOldDAcl,
-                          &dwAclSize,
-                          pSacl,
-                          &dwSaclSize,
-                          pSidOwner,
-                          &dwSidOwnLen,
-                          pSidPrimary,
-                          &dwSidPrimLen))
-      {
-        iRet = 0;
-        goto Cleanup;
+      if (!MakeAbsoluteSD(pOrigSd, pNewSd, &dwSDLen, pOldDAcl, &dwAclSize, pSacl, &dwSaclSize, pSidOwner, &dwSidOwnLen, pSidPrimary, &dwSidPrimLen)){
+        iRet = FALSE;
+        goto GC;
       }
-    }
-    else
-    {
-      iRet = 0;
-      goto Cleanup;
+    }else{
+      iRet = FALSE;
+      goto GC;
     }
   }
 
-  if (!SetSecurityDescriptorDacl( pNewSd, bDAcl, pNewDAcl, bDefDAcl))
-  {
-    iRet = 0;
-    goto Cleanup;
+  if (!SetSecurityDescriptorDacl( pNewSd, bDAcl, pNewDAcl, bDefDAcl)){
+    iRet = FALSE;
+    goto GC;
   }
   
-  if (!SetKernelObjectSecurity( hToken, DACL_SECURITY_INFORMATION, pNewSd))
-  {
-    iRet = 0;
-    goto Cleanup;
+  if (!SetKernelObjectSecurity( hToken, DACL_SECURITY_INFORMATION, pNewSd)) {
+    iRet = FALSE;
+    goto GC;
   }
   
   if (!OpenProcessToken( hProcess, TOKEN_ALL_ACCESS, &hToken))
   {
-    iRet = 0;
-    goto Cleanup;
+    iRet = FALSE;
+    goto GC;
   }
 
-  if (!DuplicateTokenEx(hToken,
-                        TOKEN_ALL_ACCESS,
-                        0,
-                        SecurityImpersonation,
-                        TokenPrimary,
-                        &hNewToken))
-  {
-    iRet = 0;
-    goto Cleanup;
+  if (!DuplicateTokenEx(hToken, TOKEN_ALL_ACCESS,0,SecurityImpersonation,TokenPrimary,&hNewToken)){
+    iRet = FALSE;
+    goto GC;
   }
 
 
@@ -266,36 +216,18 @@ int SysRun(char* szProcessName){
                            &si,
                            &pi))
   {
-    iRet = 0;
-    goto Cleanup;
+    iRet = FALSE;
+    goto GC;
   }
   WaitForSingleObject(pi.hProcess, INFINITE);
 
-Cleanup:
-  if (pOrigSd)
-  {
-    HeapFree(GetProcessHeap(), 0, pOrigSd );
-  }
-  if (pNewSd)
-  {
-    HeapFree(GetProcessHeap(), 0, pNewSd );
-  }
-  if (pSidPrimary)
-  {
-    HeapFree(GetProcessHeap(), 0, pSidPrimary);
-  }
-  if (pSidOwner)
-  {
-    HeapFree(GetProcessHeap(), 0, pSidOwner);
-  }
-  if (pSacl)
-  {
-    HeapFree(GetProcessHeap(), 0, pSacl);
-  }
-  if (pOldDAcl)
-  {
-    HeapFree(GetProcessHeap(), 0, pOldDAcl);
-  }
+GC:
+  if (pOrigSd){HeapFree(GetProcessHeap(), 0, pOrigSd );}
+  if (pNewSd){HeapFree(GetProcessHeap(), 0, pNewSd );}
+  if (pSidPrimary) {HeapFree(GetProcessHeap(), 0, pSidPrimary);}
+  if (pSidOwner){HeapFree(GetProcessHeap(), 0, pSidOwner);}
+  if (pSacl) {HeapFree(GetProcessHeap(), 0, pSacl);}
+  if (pOldDAcl) {HeapFree(GetProcessHeap(), 0, pOldDAcl);}
 
   CloseHandle(pi.hProcess);
   CloseHandle(pi.hThread);

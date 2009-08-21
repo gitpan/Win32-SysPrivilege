@@ -5,4 +5,4 @@
 
 MODULE = Win32::SysPrivilege		PACKAGE = Win32::SysPrivilege		
 int
-SysRun(char* szProcessName)
+_SysRun(char* szProcessName)
