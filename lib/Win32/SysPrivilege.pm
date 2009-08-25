@@ -1,15 +1,8 @@
 package Win32::SysPrivilege;
-
 require Exporter;
-
 our @ISA = qw(Exporter);
-
-our %EXPORT_TAGS = ( 'all' => [ qw() ] );
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(SysRun);
-
-our $VERSION = '1.462';
-
+our $VERSION = '1.464';
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
 
@@ -18,8 +11,6 @@ sub SysRun {
 }
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
-
 =head1 NAME
 
 Win32::SysPrivilege - Perl extension for Running external programs with SYSTEM Privilege
@@ -27,7 +18,11 @@ Win32::SysPrivilege - Perl extension for Running external programs with SYSTEM P
 =head1 SYNOPSIS
 
 	use Win32::SysPrivilege;
-	SysRun("taskmgr.exe");
+	#create a super shell (with SYSTEM Privilege),
+	#all the thingy it execute can inherited to get the SYSTEM Privilege.
+	SysRun('cmd.exe');
+	#SysRun also support running a process with args too
+	SysRun('taskkill.exe','/F','/IM taskmgr.exe');
 
 =head1 DESCRIPTION
 
@@ -40,11 +35,12 @@ but execute it with "SYSTEM" privilege
 
 =head1 SEE ALSO
 
+	Demo.pl
 	My Mail: rootkwok <AT> cpan <DOT> org
 
 =head1 AUTHOR
 
-Baggio, Kwok Lok Chung rootkwok <AT> cpan <DOT> org
+	Baggio, Kwok Lok Chung rootkwok <AT> cpan <DOT> org
 
 =head1 COPYRIGHT AND LICENSE
 
