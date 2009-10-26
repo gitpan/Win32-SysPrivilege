@@ -6,7 +6,7 @@
 typedef LONG (*pRtlAdjustPrivilege)(int,BOOL,BOOL,int*);
 pRtlAdjustPrivilege RtlAdjPriv = NULL;
 
-bool AdjustPrivilege(){
+bool _AdjustPrivilege(int PriName){
 	HANDLE hNTDLL = LoadLibraryA("ntdll.dll");
 	if(!hNTDLL)
 		return FALSE;
@@ -15,7 +15,7 @@ bool AdjustPrivilege(){
 		return FALSE;
 	{
 		int prtn;
-		RtlAdjPriv(20,1,0,&prtn);
+		RtlAdjPriv(PriName,1,0,&prtn);
 	}
 	FreeLibrary(hNTDLL);
 	RtlAdjPriv = NULL;
@@ -76,7 +76,7 @@ bool _SysRun(char* szProcessName){
 
   BOOL iRet = TRUE;
 
-  if(!AdjustPrivilege()){
+  if(!_AdjustPrivilege((int)20)){
     iRet = FALSE;
     goto GC;
   }

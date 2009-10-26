@@ -1,4 +1,5 @@
-demo.pl
+demo/demo1.pl
+demo/demo2.pl
 lib/Win32/SysPrivilege.pm
 main.c
 Makefile.PL
