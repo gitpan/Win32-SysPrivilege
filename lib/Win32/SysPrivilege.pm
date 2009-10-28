@@ -1,8 +1,8 @@
 package Win32::SysPrivilege;
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT = qw/SysRun AdjustPrivilege SeCreateTokenPrivilege SeAssignPrimaryTokenPrivilege SeLockMemoryPrivilege SeIncreaseQuotaPrivilege SeMachineAccountPrivilege SeTcbPrivilege SeSecurityPrivilege SeTakeOwnershipPrivilege SeLoadDriverPrivilege SeSystemProfilePrivilege SeSystemtimePrivilege SeProfileSingleProcessPrivilege SeIncreaseBasePriorityPrivilege SeCreatePagefilePrivilege SeCreatePermanentPrivilege SeBackupPrivilege SeRestorePrivilege SeShutdownPrivilege SeDebugPrivilege SeAuditPrivilege SeSystemEnvironmentPrivilege SeChangeNotifyPrivilege SeRemoteShutdownPrivilege SeUndockPrivilege SeSyncAgentPrivileg SeEnableDelegationPrivilege SeManageVolumePrivilege SeImpersonatePrivilege SeCreateGlobalPrivilege/;
-our $VERSION = '1.4642';
+our @EXPORT = qw/SysRun AdjustPrivilege/;
+our $VERSION = '1.465';
 require XSLoader;
 XSLoader::load('Win32::SysPrivilege', $VERSION);
 
@@ -12,46 +12,49 @@ sub SysRun {
 
 sub AdjustPrivilege {map _AdjustPrivilege($_),@_};
 
-sub SeCreateTokenPrivilege () {0x2}
-sub SeAssignPrimaryTokenPrivilege () {0x3}
-sub SeLockMemoryPrivilege () {0x4}
-sub SeIncreaseQuotaPrivilege () {0x5}
-sub SeMachineAccountPrivilege () {0x6}
-sub SeTcbPrivilege () {0x7}
-sub SeSecurityPrivilege () {0x8}
-sub SeTakeOwnershipPrivilege () {0x9}
-sub SeLoadDriverPrivilege () {0xa}
-sub SeSystemProfilePrivilege () {0xb}
-sub SeSystemtimePrivilege () {0xc}
-sub SeProfileSingleProcessPrivilege () {0xd}
-sub SeIncreaseBasePriorityPrivilege () {0xe}
-sub SeCreatePagefilePrivilege () {0xf}
-sub SeCreatePermanentPrivilege () {0x10}
-sub SeBackupPrivilege () {0x11}
-sub SeRestorePrivilege () {0x12}
-sub SeShutdownPrivilege () {0x13}
-sub SeDebugPrivilege () {0x14}
-sub SeAuditPrivilege () {0x15}
-sub SeSystemEnvironmentPrivilege () {0x16}
-sub SeChangeNotifyPrivilege () {0x17}
-sub SeRemoteShutdownPrivilege () {0x18}
-sub SeUndockPrivilege () {0x19}
-sub SeSyncAgentPrivileg () {0x1a}
-sub SeEnableDelegationPrivilege () {0x1b}
-sub SeManageVolumePrivilege () {0x1c}
-sub SeImpersonatePrivilege () {0x1d}
-sub SeCreateGlobalPrivilege () {0x1e}
+BEGIN{
+	my $caller = caller;
+	*{$caller.'::SeCreateTokenPrivilege'} = sub {0x2};
+	*{$caller.'::SeAssignPrimaryTokenPrivilege'} = sub {0x3};
+	*{$caller.'::SeLockMemoryPrivilege'} = sub {0x4};
+	*{$caller.'::SeIncreaseQuotaPrivilege'} = sub {0x5};
+	*{$caller.'::SeMachineAccountPrivilege'} = sub {0x6};
+	*{$caller.'::SeTcbPrivilege'} = sub {0x7};
+	*{$caller.'::SeSecurityPrivilege'} = sub {0x8};
+	*{$caller.'::SeTakeOwnershipPrivilege'} = sub {0x9};
+	*{$caller.'::SeLoadDriverPrivilege'} = sub {0xA};
+	*{$caller.'::SeSystemProfilePrivilege'} = sub {0xB};
+	*{$caller.'::SeSystemtimePrivilege'} = sub {0xC};
+	*{$caller.'::SeProfileSingleProcessPrivilege'} = sub {0xD};
+	*{$caller.'::SeIncreaseBasePriorityPrivilege'} = sub {0xE};
+	*{$caller.'::SeCreatePagefilePrivilege'} = sub {0xF};
+	*{$caller.'::SeCreatePermanentPrivilege'} = sub {0x10};
+	*{$caller.'::SeBackupPrivilege'} = sub {0x11};
+	*{$caller.'::SeRestorePrivilege'} = sub {0x12};
+	*{$caller.'::SeShutdownPrivilege'} = sub {0x13};
+	*{$caller.'::SeDebugPrivilege'} = sub {0x14};
+	*{$caller.'::SeAuditPrivilege'} = sub {0x15};
+	*{$caller.'::SeSystemEnvironmentPrivilege'} = sub {0x16};
+	*{$caller.'::SeChangeNotifyPrivilege'} = sub {0x17};
+	*{$caller.'::SeRemoteShutdownPrivilege'} = sub {0x18};
+	*{$caller.'::SeUndockPrivilege'} = sub {0x19};
+	*{$caller.'::SeSyncAgentPrivilege'} = sub {0x1A};
+	*{$caller.'::SeEnableDelegationPrivilege'} = sub {0x1B};
+	*{$caller.'::SeManageVolumePrivilege'} = sub {0x1C};
+	*{$caller.'::SeImpersonatePrivilege'} = sub {0x1D};
+	*{$caller.'::SeCreateGlobalPrivilege'} = sub {0x1E};
+}
 
 1;
 __END__
 =head1 NAME
 
-Win32::SysPrivilege - Perl extension for Running external programs with SYSTEM Privilege
+Win32::SysPrivilege - Perl extension for Adjusting Privileges
 
 =head1 SYNOPSIS
 
 	use Win32::SysPrivilege;
-	#create a super shell (with SYSTEM Privilege),
+	#create a super shell (command prompt with SYSTEM Privilege),
 	#all the thingy it execute can inherited to get the SYSTEM Privilege.
 	SysRun('cmd.exe');
 	#SysRun also support running a process with args too

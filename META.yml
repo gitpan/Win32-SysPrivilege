@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:               Win32-SysPrivilege
-version:            1.4642
-abstract:           Perl extension for Running external programs with SYSTEM Privilege
+version:            1.465
+abstract:           Perl extension for Adjusting Privileges
 author:
     - Baggio, Kwok Lok Chung <lokchungk@hotmail.com>
 license:            unknown
